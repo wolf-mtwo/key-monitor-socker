@@ -5,9 +5,9 @@ module.exports = (grunt) ->
   PATTERN_LOAD_TASK =
     pattern: 'grunt-*'
     scope: 'devDependencies'
-
   (require 'load-grunt-tasks')(grunt, PATTERN_LOAD_TASK)
 
+  grunt.loadNpmTasks('grunt-contrib-watch')
   # configure the tasks
   grunt.initConfig
 
@@ -20,11 +20,19 @@ module.exports = (grunt) ->
           ext: 'js,html'
           delayTime: 1
           cwd: __dirname
+    watch:
+      scripts:
+        files: ['public/**/*']
+        tasks: []
+        options:
+          livereload: 35729,
+        # options:
+        #   spawn: false
 
     # Concurrent tasks
     concurrent:
       server:
-        tasks: ['nodemon:server']
+        tasks: ['nodemon:server', 'watch']
         options:
           logConcurrentOutput: true
 
