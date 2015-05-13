@@ -22,7 +22,7 @@ module.exports = (grunt) ->
           cwd: __dirname
     watch:
       scripts:
-        files: ['public/**/*']
+        files: ['public/**/*', 'server/index.html']
         tasks: []
         options:
           livereload: 35729,

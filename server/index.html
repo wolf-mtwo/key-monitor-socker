@@ -3,8 +3,119 @@
     <title>Demo</title>
     <link rel="stylesheet" href="/css/master.css" media="screen" charset="utf-8">
     <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/angular/angular.js"></script>
   </head>
-  <body>
-    hello World!
+  <body ng-app="main">
+    <div ng-controller="mainController">
+        {{name}}
+        {{data}}
+    </div>
   </body>
+<script type="text/javascript">
+// object.addEventListener("keypress", function(event){
+//   console.log(event);
+// });
+
+
+
+(function(module){
+  var socket = io();
+  module.version = "v0.0.1";
+  var socketModule = module.socket = (function(module) {
+    module.emit = function (msg) {
+      console.info('sent:', msg);
+      socket.emit('msg', msg);
+    }
+    module.on = function (callback) {
+      socket.on('msg', function(msg) {
+        console.info('recive:', msg);
+        callback(msg);
+      });
+    }
+    return module;
+  })({});
+
+  module.move = (function(module) {
+
+    module.state = (function(module) {
+      var state = {v: 0,h: 0};
+      var old = null;
+      module.reset = function() {
+        return state = {v: 0,h: 0}
+      }
+      module.change = function(command) {
+        switch (command) {
+          case 'v+': state.v = old == command ? state.v : 0; state.v++; break;
+          case 'v-': state.v = old == command ? state.v : 0; state.v--; break;
+          case 'h+': state.h++; break;
+          case 'h-': state.h--; break;
+          default:
+            console.error('there is no command:', command);
+            break;
+        }
+        old = command;
+        return state;
+      }
+      return module;
+    })({});
+
+    module.forward = function(callback) {
+      console.log('Event forward:');
+      socketModule.emit(module.state.change('v+'));
+    }
+    module.back = function(callback) {
+      console.log('Event back:');
+      socketModule.emit(module.state.change('v-'));
+    }
+    module.left = function(callback) {
+      console.log('Event left:');
+      socketModule.emit(module.state.change('h-'));
+    }
+    module.right = function(callback) {
+      console.log('Event right:');
+      socketModule.emit(module.state.change('h+'));
+    }
+    module.reset = function(callback) {
+      console.log('Event reset:');
+      socketModule.emit(module.state.reset());
+    }
+    window.run = {
+      '119': module.forward,
+      '115': module.back,
+      '97': module.left,
+      '100': module.right,
+      '114': module.reset
+    };
+    return module;
+  })({});
+
+  window.remote = module;
+})({});
+angular.module('main', [])
+  .controller('mainController', mainController);
+console.log(remote);
+
+function mainController($rootScope, $scope) {
+  $scope.name = "lagg";
+  remote.socket.on(function(msg) {
+    $scope.data = msg;
+    $scope.generate.apply($scope.generate, [msg]);
+    $rootScope.$apply(function() {
+      $scope.generate.apply(this, [msg]);
+    });
+  });
+  $scope.generate = function(msg) {
+    $scope.data = msg;
+  }
+}
+
+document.onkeypress = function(e) {
+  if(run[e.keyCode]) {
+    run[e.keyCode]();
+  } else {
+    console.info('invalid command:', e.keyCode);
+  }
+}
+</script>
 </html>

@@ -1,18 +1,25 @@
 var express = require('express');
-var path = require("path");
 var app = express();
-app.engine('html', require('ejs').renderFile);
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+var path = require("path");
 app.use(express.static(path.join(__dirname + '/../public')));
+app.use(express.static(path.join(__dirname + '/../bower_components')));
 
 app.get('/', function (req, res) {
   res.sendFile(path.join( __dirname + '/index.html'));
 });
 
-var server = app.listen(3000, '0.0.0.0', function () {
+io.on('connection', function(socket) {
+  socket.on('msg', function(msg) {
+    console.log(msg);
+    // io.emit('chat message', msg);
+  });
+});
 
-  var host = server.address().address;
-  var port = server.address().port;
-
-  console.log('Example app listening at http://%s:%s', host, port);
-
+setInterval(function(){
+  io.emit('msg', 'message');
+},1000);
+http.listen(3000, function () {
+  console.log('listenin on *:3000');
 });
