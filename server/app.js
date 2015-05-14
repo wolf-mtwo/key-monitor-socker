@@ -19,7 +19,8 @@ io.on('connection', function(socket) {
 
 setInterval(function(){
   io.emit('msg', 'message');
-},1000);
+}, 3000);
+
 http.listen(3000, function () {
   console.log('listenin on *:3000');
 });
